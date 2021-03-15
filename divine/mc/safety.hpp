@@ -67,6 +67,34 @@ struct Safety : Job
                 [&]( auto st ) { return _next.state( st ); } ) );
     }
 
+    auto make_search( std::string alg )
+    {
+        auto s = ss::make_search(
+            _ex, ss::listen(
+                [&]( auto from, auto to, auto label, bool isnew )
+                {
+                    if ( isnew )
+                    {
+                        _ext.materialise( to.snap, sizeof( from ) );
+                        Parent &parent = *_ext.machinePointer< Parent >( to.snap );
+                        parent = from.snap;
+                    }
+                    if ( label.error )
+                    {
+                        _error_found = true;
+                        _error = from; /* the error edge may not be the parent of 'to' */
+                        _error_to = to;
+                        _error_label = label;
+                        return ss::Listen::Terminate;
+                    }
+                    return _next.edge( from, to, label, isnew );
+                },
+                [&]( auto st ) { return _next.state( st ); } ));
+
+        s.switch_alg ( alg );
+        return s;
+    }
+
     template< typename... Args >
     Safety( std::shared_ptr< BitCode > bc, Next next, Args... builder_opts )
         : _ex( bc, builder_opts... ),
@@ -101,7 +129,24 @@ struct Safety : Job
 
     void start( int threads, std::string alg ) override
     {
-        start( threads );
+        using Search = decltype( make_search( alg ) );
+        _search.reset( new Search( std::move( make_search( alg ) ) ) );
+        Search *search = dynamic_cast< Search * >( _search.get() );
+
+        stats = [=]()
+        {
+            int64_t st = _ex._d.total_states->load();
+            int64_t mip = _ex._d.total_instructions->load();
+            search->ws_each( [&]( auto &bld, auto & )
+            {
+                st += bld._d.local_states;
+                mip += bld._d.local_instructions;
+            } );
+            return std::make_pair( st, mip );
+        };
+        queuesize = [=]() { return search->qsize(); };
+
+        search->start( threads );
     }
 
     Trace ce_trace() override

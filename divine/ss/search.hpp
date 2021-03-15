@@ -27,7 +27,7 @@ struct Job
     std::function< int64_t() > qsize;
 };
 
-enum class Order { PseudoBFS, DFS };
+enum class Order { PseudoBFS, DFS, myDFS };
 
 template< typename B, typename L >
 struct Search : Job
@@ -56,14 +56,21 @@ struct Search : Job
 
     void order( Order o ) { _order = o; }
 
+    void switch_alg ( std::string alg )
+    {
+        // default : BFS
+        if ( alg == "BFS" )
+            ;
+        else if ( alg == "DFS" )
+            order( ss::Order::DFS );
+        else if ( alg == "myDFS" )
+            order( ss::Order::myDFS );
+        else
+            UNREACHABLE( "unsupported algorithm", alg );
+    }
+
     Search( const B &b, const L &l )
         : _builder( b ), _listener( l ), _order( Order::PseudoBFS ),
-          _workset( std::make_shared< Vector >() ),
-          _terminate( new std::atomic< bool >( false ) )
-    {}
-
-    Search( const B &b, const L &l, std::string alg )
-        : _builder( b ), _listener( l ),
           _workset( std::make_shared< Vector >() ),
           _terminate( new std::atomic< bool >( false ) )
     {}
@@ -207,6 +214,11 @@ struct Search : Job
         };
     }
 
+    Worker myDFS() {
+        std::cout << "In function myDFS()\n";
+        NOT_IMPLEMENTED(); 
+    }
+
     Worker distributedBFS() { NOT_IMPLEMENTED(); }
 
     void start( int thread_count ) override
@@ -218,6 +230,7 @@ struct Search : Job
         {
             case Order::PseudoBFS: blueprint = pseudoBFS(); break;
             case Order::DFS: blueprint = DFS(); break;
+            case Order::myDFS: blueprint = myDFS(); break;
         }
 
         for ( int i = 0; i < _thread_count; ++i )
