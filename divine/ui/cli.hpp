@@ -303,6 +303,7 @@ namespace divine::ui
         brq::cmd_flag _liveness;
         bool _interactive = true;
         std::string _solver = "stp";
+        std::string _alg = "BFS";
 
         void setup() override;
         void run() override;
@@ -337,7 +338,7 @@ namespace divine::ui
             c.opt( "--max-time", _max_time ) << "set a time limit (in seconds)";
             c.opt( "--liveness", _liveness ) << "enable verification of liveness properties";
             c.opt( "--solver", _solver ) << "select a constraint solver to use in --symbolic mode";
-
+            c.opt( "--alg", _alg ) << "select a verification algorithm to use";
         }
     };
 

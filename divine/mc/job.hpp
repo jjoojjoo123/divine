@@ -44,6 +44,13 @@ struct Job : ss::Job
         _monitor = monit;
     }
 
+    template< typename Monitor >
+    void start( int threads, std::string alg, Monitor monit )
+    {
+        start( threads, alg ); /* virtual */
+        _monitor = monit;
+    }
+
     void wait() override
     {
         auto clock = std::chrono::steady_clock::now();
@@ -72,6 +79,7 @@ struct Job : ss::Job
     virtual HashStats hashstats() { return HashStats(); }
     virtual void dbg_fill( DbgCtx & ) {}
     virtual void start( int ) override = 0;
+    virtual void start( int, std::string ) override = 0;
     virtual ~Job() = default;
 };
 

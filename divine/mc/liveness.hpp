@@ -225,6 +225,11 @@ struct NestedDFS : ss::Job
         _thread = std::async( [&]{ run(); } );
     }
 
+    void start( int thread_count, std::string alg ) override
+    {
+        start( thread_count );
+    }
+
     void wait() override
     {
         _thread.get();
@@ -291,6 +296,11 @@ struct Liveness : Job
         _error_found = [=]() { return search->counterexample.goal.has_value(); };
 
         search->start( threads );
+    }
+
+    void start( int threads, std::string alg ) override
+    {
+        start( threads );
     }
 
     void dbg_fill( DbgCtx &dbg ) override { dbg.load( _ex.pool(), _ex.context() ); }

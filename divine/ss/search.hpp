@@ -21,6 +21,7 @@ namespace shmem = ::brick::shmem;
 struct Job
 {
     virtual void start( int threads ) = 0;
+    virtual void start( int threads, std::string alg ) = 0;
     virtual void stop() = 0;
     virtual void wait() = 0;
     std::function< int64_t() > qsize;
@@ -57,6 +58,12 @@ struct Search : Job
 
     Search( const B &b, const L &l )
         : _builder( b ), _listener( l ), _order( Order::PseudoBFS ),
+          _workset( std::make_shared< Vector >() ),
+          _terminate( new std::atomic< bool >( false ) )
+    {}
+
+    Search( const B &b, const L &l, std::string alg )
+        : _builder( b ), _listener( l ),
           _workset( std::make_shared< Vector >() ),
           _terminate( new std::atomic< bool >( false ) )
     {}
@@ -217,6 +224,11 @@ struct Search : Job
             _threads.emplace_back( std::async( blueprint ) );
     }
 
+    void start( int thread_count, std::string algorithm ) override
+    {
+        start( thread_count );
+    }
+
     void wait() override
     {
         auto cleanup = [&]
@@ -245,6 +257,12 @@ template< typename B, typename L >
 auto make_search( B b, L l )
 {
     return Search< B, L >( b, l );
+}
+
+template< typename B, typename L >
+auto make_search( B b, L l, std::string alg )
+{
+    return Search< B, L >( b, l, alg );
 }
 
 template< typename B, typename L >

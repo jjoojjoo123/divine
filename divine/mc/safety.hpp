@@ -99,6 +99,11 @@ struct Safety : Job
         search->start( threads );
     }
 
+    void start( int threads, std::string alg ) override
+    {
+        start( threads );
+    }
+
     Trace ce_trace() override
     {
         if ( !_error_found )

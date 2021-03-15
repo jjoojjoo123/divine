@@ -140,7 +140,7 @@ void verify::safety()
     _log->start();
     int ps_ctr = 0;
 
-    safety->start( _threads, [&]( bool last )
+    safety->start( _threads, _alg, [&]( bool last )
                    {
                        _log->progress( safety->stats(),
                                        safety->queuesize(), last );
