@@ -56,14 +56,14 @@ struct Search : Job
 
     void order( Order o ) { _order = o; }
 
-    void switch_alg ( std::string alg )
+    void set_alg ( std::string alg )
     {
         // default : BFS
-        if ( alg == "BFS" )
-            ;
-        else if ( alg == "DFS" )
+        if ( alg == "BFS" || alg == "bfs" )
+            order( ss::Order::PseudoBFS );
+        else if ( alg == "DFS" || alg == "dfs" )
             order( ss::Order::DFS );
-        else if ( alg == "myDFS" )
+        else if ( alg == "myDFS" || alg == "mydfs" )
             order( ss::Order::myDFS );
         else
             UNREACHABLE( "unsupported algorithm", alg );

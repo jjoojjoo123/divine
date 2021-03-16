@@ -91,7 +91,7 @@ struct Safety : Job
                 },
                 [&]( auto st ) { return _next.state( st ); } ));
 
-        s.switch_alg ( alg );
+        s.set_alg ( alg );
         return s;
     }
 
